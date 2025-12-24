@@ -923,7 +923,38 @@ export class SearchManager {
           };
         }
 
-        // Format as table
+        // Check format parameter - 'full' returns complete JSON data
+        const format = options.format || 'index';
+
+        if (format === 'full') {
+          // Return full observation data as JSON
+          const fullResults = results.map(obs => ({
+            id: obs.id,
+            type: obs.type,
+            title: obs.title,
+            subtitle: obs.subtitle,
+            narrative: obs.narrative,
+            facts: obs.facts ? JSON.parse(obs.facts) : [],
+            concepts: obs.concepts ? JSON.parse(obs.concepts) : [],
+            files_read: obs.files_read ? JSON.parse(obs.files_read) : [],
+            files_modified: obs.files_modified ? JSON.parse(obs.files_modified) : [],
+            project: obs.project,
+            sdk_session_id: obs.sdk_session_id,
+            prompt_number: obs.prompt_number,
+            discovery_tokens: obs.discovery_tokens,
+            created_at: obs.created_at,
+            created_at_epoch: obs.created_at_epoch
+          }));
+
+          return {
+            query,
+            count: results.length,
+            format: 'full',
+            results: fullResults
+          };
+        }
+
+        // Format as table (index format - default)
         const header = `Found ${results.length} observation(s) matching "${query}"\n\n${this.formatter.formatTableHeader()}`;
         const formattedResults = results.map((obs, i) => this.formatter.formatObservationIndex(obs, i));
 
