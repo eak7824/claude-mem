@@ -10,6 +10,7 @@ import { stdin } from "process";
 import { ensureWorkerRunning, getWorkerPort } from "../shared/worker-utils.js";
 import { HOOK_TIMEOUTS } from "../shared/hook-constants.js";
 import { getProjectName } from "../utils/project-name.js";
+import { logger } from "../utils/logger.js";
 
 export interface SessionStartInput {
   session_id: string;
@@ -28,7 +29,9 @@ async function contextHook(input?: SessionStartInput): Promise<string> {
 
   const url = `http://127.0.0.1:${port}/api/context/inject?project=${encodeURIComponent(project)}`;
 
-  const response = await fetch(url, { signal: AbortSignal.timeout(HOOK_TIMEOUTS.DEFAULT) });
+  // Note: Removed AbortSignal.timeout due to Windows Bun cleanup issue (libuv assertion)
+  // Worker service has its own timeouts, so client-side timeout is redundant
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(`Context generation failed: ${response.status}`);

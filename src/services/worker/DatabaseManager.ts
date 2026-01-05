@@ -27,13 +27,8 @@ export class DatabaseManager {
     this.sessionStore = new SessionStore();
     this.sessionSearch = new SessionSearch();
 
-    // Initialize ChromaSync
+    // Initialize ChromaSync (lazy - connects on first search, not at startup)
     this.chromaSync = new ChromaSync('claude-mem');
-
-    // Start background backfill (fire-and-forget)
-    this.chromaSync.ensureBackfilled().catch(error => {
-      logger.error('DB', 'Chroma backfill failed (non-fatal)', {}, error);
-    });
 
     logger.info('DB', 'Database initialized');
   }
@@ -98,8 +93,8 @@ export class DatabaseManager {
    */
   getSessionById(sessionDbId: number): {
     id: number;
-    claude_session_id: string;
-    sdk_session_id: string | null;
+    content_session_id: string;
+    memory_session_id: string | null;
     project: string;
     user_prompt: string;
   } {
@@ -110,10 +105,4 @@ export class DatabaseManager {
     return session;
   }
 
-  /**
-   * Mark session as completed
-   */
-  markSessionComplete(sessionDbId: number): void {
-    this.getSessionStore().markSessionCompleted(sessionDbId);
-  }
 }
